@@ -58,6 +58,12 @@ class MatrixGestureDetector extends StatefulWidget {
   ///
   final bool ignoreGestures;
 
+  /// Be able to set an initial matrix
+  ///
+  /// Defaults to null.
+  ///
+  final Matrix4 initialMatrix;
+
   /// When set, it will be used for computing a "fixed" focal point
   /// aligned relative to the size of this widget.
   final Alignment focalPointAlignment;
@@ -70,6 +76,7 @@ class MatrixGestureDetector extends StatefulWidget {
     this.shouldScale = true,
     this.shouldRotate = true,
     this.clipChild = true,
+    this.initialMatrix,
     this.ignoreGestures = false,
     this.focalPointAlignment,
   })  : assert(onMatrixUpdate != null),
@@ -113,17 +120,30 @@ class MatrixGestureDetectorState extends State<MatrixGestureDetector> {
   Matrix4 translationDeltaMatrix = Matrix4.identity();
   Matrix4 scaleDeltaMatrix = Matrix4.identity();
   Matrix4 rotationDeltaMatrix = Matrix4.identity();
-  Matrix4 matrix = Matrix4.identity();
+  Matrix4 matrix;
+
+  @override
+  void initState() {
+    matrix = widget.initialMatrix != null
+        ? widget.initialMatrix
+        : Matrix4.identity();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget child =
-        widget.clipChild ? ClipRect(child: widget.child) : widget.child;
-    return GestureDetector(
-      onScaleStart: !widget.ignoreGestures ? onScaleStart : null,
-      onScaleUpdate: !widget.ignoreGestures ? onScaleUpdate : null,
-      child: child,
-    );
+    Widget child = widget.clipChild
+        ? ClipRect(
+            child: widget.child,
+          )
+        : widget.child;
+    return !widget.ignoreGestures
+        ? GestureDetector(
+            onScaleStart: onScaleStart,
+            onScaleUpdate: onScaleUpdate,
+            child: child,
+          )
+        : child;
   }
 
   _ValueUpdater<Offset> translationUpdater = _ValueUpdater(
