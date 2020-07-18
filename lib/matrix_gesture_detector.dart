@@ -52,6 +52,12 @@ class MatrixGestureDetector extends StatefulWidget {
   ///
   final bool clipChild;
 
+  /// Ignore all gesture to be able to pass through the GestureDetector
+  ///
+  /// Defaults to false.
+  ///
+  final bool ignoreGestures;
+
   /// When set, it will be used for computing a "fixed" focal point
   /// aligned relative to the size of this widget.
   final Alignment focalPointAlignment;
@@ -64,13 +70,14 @@ class MatrixGestureDetector extends StatefulWidget {
     this.shouldScale = true,
     this.shouldRotate = true,
     this.clipChild = true,
+    this.ignoreGestures = false,
     this.focalPointAlignment,
   })  : assert(onMatrixUpdate != null),
         assert(child != null),
         super(key: key);
 
   @override
-  _MatrixGestureDetectorState createState() => _MatrixGestureDetectorState();
+  MatrixGestureDetectorState createState() => MatrixGestureDetectorState();
 
   ///
   /// Compose the matrix from translation, scale and rotation matrices - you can
@@ -102,7 +109,7 @@ class MatrixGestureDetector extends StatefulWidget {
   }
 }
 
-class _MatrixGestureDetectorState extends State<MatrixGestureDetector> {
+class MatrixGestureDetectorState extends State<MatrixGestureDetector> {
   Matrix4 translationDeltaMatrix = Matrix4.identity();
   Matrix4 scaleDeltaMatrix = Matrix4.identity();
   Matrix4 rotationDeltaMatrix = Matrix4.identity();
@@ -113,8 +120,8 @@ class _MatrixGestureDetectorState extends State<MatrixGestureDetector> {
     Widget child =
         widget.clipChild ? ClipRect(child: widget.child) : widget.child;
     return GestureDetector(
-      onScaleStart: onScaleStart,
-      onScaleUpdate: onScaleUpdate,
+      onScaleStart: !widget.ignoreGestures ? onScaleStart : null,
+      onScaleUpdate: !widget.ignoreGestures ? onScaleUpdate : null,
       child: child,
     );
   }
@@ -128,6 +135,10 @@ class _MatrixGestureDetectorState extends State<MatrixGestureDetector> {
   _ValueUpdater<double> scaleUpdater = _ValueUpdater(
     onUpdate: (oldVal, newVal) => newVal / oldVal,
   );
+
+  void overrideInternalMatrix(Matrix4 externalMatrix) {
+    matrix = externalMatrix;
+  }
 
   void onScaleStart(ScaleStartDetails details) {
     translationUpdater.value = details.focalPoint;
