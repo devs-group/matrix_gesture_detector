@@ -28,6 +28,9 @@ class MatrixGestureDetector extends StatefulWidget {
   ///
   final Widget child;
 
+  /// Triggered when gesture ends
+  final Function onMatrixUpdateEnd;
+
   /// Whether to detect translation gestures during the event processing.
   ///
   /// Defaults to true.
@@ -72,6 +75,7 @@ class MatrixGestureDetector extends StatefulWidget {
     Key key,
     @required this.onMatrixUpdate,
     @required this.child,
+    this.onMatrixUpdateEnd,
     this.shouldTranslate = true,
     this.shouldScale = true,
     this.shouldRotate = true,
@@ -141,6 +145,7 @@ class MatrixGestureDetectorState extends State<MatrixGestureDetector> {
         ? GestureDetector(
             onScaleStart: onScaleStart,
             onScaleUpdate: onScaleUpdate,
+            onScaleEnd: widget.onMatrixUpdateEnd,
             child: child,
           )
         : child;
